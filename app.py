@@ -5,6 +5,9 @@ import math
 st.set_page_config(page_title="Kalkulator Pipa Bercabang", layout="centered")
 
 st.title("🚰 Analisis Pipa Bercabang (3 Reservoir)")
+# Watermark 1: Teks di bawah judul
+st.caption("Thanks To: **Anwar N**")
+
 st.write("Masukkan 3 digit NIM terakhir Anda untuk melihat langkah pengerjaan lengkap.")
 
 # 1. INPUT DARI USER VIA WEB INTERFACE
@@ -255,3 +258,26 @@ if st.button("Hitung Sekarang"):
         3. **Debit Pipa 2 ($Q_2$):** ${Q2_fin:.4f}\\text{{ m}}^3/s$ (Mengalir {arah_Q2})
         4. **Debit Pipa 3 ($Q_3$):** ${Q3_fin:.4f}\\text{{ m}}^3/s$ (Titik T $\\rightarrow$ Reservoir D)
         """)
+
+# Watermark 2: Melayang secara permanen di sudut kanan bawah layar
+st.markdown(
+    """
+    <style>
+    .floating-watermark {
+        position: fixed;
+        bottom: 15px;
+        right: 15px;
+        opacity: 0.5;
+        font-size: 13px;
+        color: #888888;
+        z-index: 9999;
+        font-weight: bold;
+        background-color: rgba(0,0,0,0.1);
+        padding: 4px 8px;
+        border-radius: 4px;
+    }
+    </style>
+    <div class="floating-watermark">© Anwar N</div>
+    """,
+    unsafe_allow_html=True
+)
