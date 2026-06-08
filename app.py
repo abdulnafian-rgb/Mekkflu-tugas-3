@@ -10,7 +10,7 @@ st.caption("Thanks To: **Anwar N**")
 
 st.write("Masukkan 3 digit NIM terakhir Anda untuk melihat langkah pengerjaan lengkap.")
 
-# 1. INPUT DARI USER VIA WEB INTERFACE
+# 1. Input Nim User 
 xyz_str = st.text_input("Masukkan 3 Digit NIM Terakhir (XYZ):", value="089", max_chars=3)
 
 if st.button("Hitung Sekarang"):
@@ -24,7 +24,7 @@ if st.button("Hitung Sekarang"):
         a = X + Y
         b = Y + Z
 
-        # 2. PROSES KONVERSI PARAMETER FISIK
+        # 2. Masukin Nim
         Z_A = float(f"21{Z}.{X}{Y}")
         Z_B = float(f"19{X}.{Z}{Y}")
         Z_D = float(f"18{X}.{Y}{Y}")
