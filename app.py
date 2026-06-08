@@ -2,7 +2,7 @@ import streamlit as st
 import math
 
 # Set judul halaman web
-st.set_page_config(page_title="Kalkulator Pipa Bercabang", layout="centered")
+st.set_page_config(page_title="Tugas 3 Mekanika Fluida Setelah UTS", layout="centered")
 
 st.title("🚰 Tugas 3 Mekanika Fluida Setelah UTS")
 # Watermark 1: Teks di bawah judul
