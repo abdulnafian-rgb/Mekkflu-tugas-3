@@ -52,6 +52,7 @@ if st.button("Hitung Sekarang"):
 
         # 4. ENGINE SOLVER
         def hitung_sistem(ht):
+            # Pengkondisian arah aliran untuk menghindari error akar negatif
             if ht > Z_B_rel:
                 q1 = math.sqrt((Z_A_rel - ht) / K1) if Z_A_rel > ht else 0
                 q2 = math.sqrt((ht - Z_B_rel) / K2) if ht > Z_B_rel else 0
@@ -65,7 +66,7 @@ if st.button("Hitung Sekarang"):
             return q1, q2, q3, diff
 
         # =====================================================================
-        # UPDATE: PROSES LOGIKA INTERPOLASI SESUAI INSTRUKSI BARU
+        # PROSES LOGIKA INTERPOLASI SESUAI INSTRUKSI BARU
         # =====================================================================
         HT_list = []
         dQ_list = []
@@ -76,7 +77,7 @@ if st.button("Hitung Sekarang"):
         HT_list.append(ht_0)
         dQ_list.append(dq_0)
 
-        # Asumsi 2: HT = Rata-rata dari ZA dan ZB dibulatkan (misal: 10.1 + 38.2 = 24)
+        # Asumsi 2: HT = Rata-rata dari ZA dan ZB dibulatkan
         ht_1 = float(round((Z_A_rel + Z_B_rel) / 2.0))
         _, _, _, dq_1 = hitung_sistem(ht_1)
         HT_list.append(ht_1)
@@ -99,10 +100,8 @@ if st.button("Hitung Sekarang"):
             if len(HT_list) > 20: 
                 break
 
-        # Hasil Konvergen
         H_T_sol = HT_list[-1]
-        Q1_fin, Q2_fin, Q3_fin, dQ_fin = hitung_sistem(H_T_sol)
-        flow_case = 1 if H_T_sol > Z_B_rel else 2
+        Q1_fin, Q2_fin, Q3_fin, _ = hitung_sistem(H_T_sol)
 
         # =====================================================================
         # 5. TAMPILAN OUTPUT WEB (MENGGUNAKAN MARKDOWN)
@@ -137,80 +136,45 @@ if st.button("Hitung Sekarang"):
         * $Z_D\\text{{ (relatif)}} = 0.0000\\text{{ m}}$
         """)
 
+        st.divider()
+        st.markdown(f"### **Langkah 4: Proses Iterasi (*Trial & Error*)**")
+
         # =====================================================================
-        # LANGKAH 4 BARU: FORMAT PDF
+        # LOOPING UNTUK MENAMPILKAN SEMUA TRIAL SECARA DETAIL
         # =====================================================================
-        st.markdown(f"**Langkah 4: Proses Iterasi Interpolasi Linear**")
-        st.markdown(f"**Trial {len(HT_list)} Interpolasi**")
-        st.write("Rumus interpolasi Linear")
-        
-        # Tabel X Y persis seperti di PDF
-        xy_table = {
-            "X": [f"{x:.4f}" for x in HT_list],
-            "Y": [f"{y:.4f}" for y in dQ_list]
-        }
-        st.table(xy_table)
+        for i in range(len(HT_list)):
+            idx = i + 1
+            ht_val = HT_list[i]
+            q1, q2, q3, dq = hitung_sistem(ht_val)
+            flow_case_trial = 1 if ht_val > Z_B_rel else 2
 
-        st.markdown(f"**Cek Trial {len(HT_list)}**")
-        if flow_case == 1:
-            st.write("Asumsi tinggi tekan di titik T ($h_T$) lebih tinggi dari asumsi Trial 1 namun masih di bawah kolam A.")
-            hf1 = Z_A_rel - H_T_sol
-            hf2 = H_T_sol - Z_B_rel
-            hf3 = H_T_sol - Z_D_rel
-        else:
-            st.write("Asumsi tinggi tekan di titik T ($h_T$) lebih rendah dari asumsi Trial 1 namun di atas kolam D.")
-            hf1 = Z_A_rel - H_T_sol
-            hf2 = Z_B_rel - H_T_sol
-            hf3 = H_T_sol - Z_D_rel
+            st.markdown(f"#### **Trial {idx}**")
+            
+            # Header Keterangan Interpolasi / Asumsi
+            if idx == 1:
+                st.info(f"**Asumsi 1:** Tinggi tekan di titik T ($h_T$) sama dengan elevasi kolam B.")
+            elif idx == 2:
+                st.info(f"**Asumsi 2:** Rata-rata dari $Z_A$ dan $Z_B$ (dibulatkan).")
+            else:
+                st.info(f"**Trial {idx} Interpolasi**")
+                st.write("Rumus interpolasi Linear:")
+                # Tabel Interpolasi dari 2 tebakan sebelumnya
+                xy_table = {
+                    "X": [f"{HT_list[i-2]:.4f}", f"{HT_list[i-1]:.4f}", f"{ht_val:.4f}"],
+                    "Y": [f"{dQ_list[i-2]:.4f}", f"{dQ_list[i-1]:.4f}", f"{dq:.4f}"]
+                }
+                st.table(xy_table)
 
-        st.markdown(f"""
-        $h_T$ = **{H_T_sol:.4f} m**
-        
-        * $hf_1 = Z_A - h_T = {Z_A_rel:.4f} - {H_T_sol:.4f} = {hf1:.4f}\\text{{ m}}$
-        * $hf_2 = |h_T - Z_B| = |{H_T_sol:.4f} - {Z_B_rel:.4f}| = {hf2:.4f}\\text{{ m}}$
-        * $hf_3 = h_T - Z_D = {H_T_sol:.4f} - 0.0000 = {hf3:.4f}\\text{{ m}}$
-        """)
-
-        st.markdown("**Sehingga debit masing-masing pipa:**")
-        st.markdown(r"$h_f = f \frac{L}{D} \frac{V^2}{2g} = \frac{8 f L Q^2}{g \pi^2 D^5} = K \cdot Q^2$")
-        
-        st.markdown(f"""
-        * **Pipa 1:**
-          $hf_1 = K_1 \\cdot Q_1^2 \\implies {hf1:.4f} = {K1:.4f} \\cdot Q_1^2$
-          $Q_1^2 = {hf1/K1:.4f} \\implies Q_1 = \\mathbf{{{Q1_fin:.4f}\\text{{ m}}^3\\text{{/s}}}}$
-          
-        * **Pipa 2:**
-          $hf_2 = K_2 \\cdot Q_2^2 \\implies {hf2:.4f} = {K2:.4f} \\cdot Q_2^2$
-          $Q_2^2 = {hf2/K2:.4f} \\implies Q_2 = \\mathbf{{{Q2_fin:.4f}\\text{{ m}}^3\\text{{/s}}}}$
-          
-        * **Pipa 3:**
-          $hf_3 = K_3 \\cdot Q_3^2 \\implies {hf3:.4f} = {K3:.4f} \\cdot Q_3^2$
-          $Q_3^2 = {hf3/K3:.4f} \\implies Q_3 = \\mathbf{{{Q3_fin:.4f}\\text{{ m}}^3\\text{{/s}}}}$
-        """)
-
-        st.markdown("**Cek persamaan kontinuitas**")
-        if flow_case == 1:
-            q_masuk = Q1_fin
-            q_keluar = Q2_fin + Q3_fin
-            st.markdown(f"""
-            * $Q_{{MASUK}} = Q_1 = \\mathbf{{{q_masuk:.4f}}}$
-            * $Q_{{KELUAR}} = Q_2 + Q_3 = {Q2_fin:.4f} + {Q3_fin:.4f} = \\mathbf{{{q_keluar:.4f}}}$
-            * $\\Delta Q = Q_{{MASUK}} - Q_{{KELUAR}} = {q_masuk:.4f} - {q_keluar:.4f} = \\mathbf{{{dQ_fin:.4f}}}$
-            """)
-        else:
-            q_masuk = Q1_fin + Q2_fin
-            q_keluar = Q3_fin
-            st.markdown(f"""
-            * $Q_{{MASUK}} = Q_1 + Q_2 = {Q1_fin:.4f} + {Q2_fin:.4f} = \\mathbf{{{q_masuk:.4f}}}$
-            * $Q_{{KELUAR}} = Q_3 = \\mathbf{{{q_keluar:.4f}}}$
-            * $\\Delta Q = Q_{{MASUK}} - Q_{{KELUAR}} = {q_masuk:.4f} - {q_keluar:.4f} = \\mathbf{{{dQ_fin:.4f}}}$
-            """)
-
-        arah_Q2 = "dari Titik T -> ke Reservoir B" if H_T_sol > Z_B_rel else "dari Reservoir B -> ke Titik T"
-        st.success(f"""
-        **🎯 HASIL AKHIR KESIMPULAN:**
-        1. **Tinggi Energi Absolut Titik T ($H_T$):** ${H_T_sol + Z_D:.4f}\\text{{ m}}$
-        2. **Debit Pipa 1 ($Q_1$):** ${Q1_fin:.4f}\\text{{ m}}^3/s$ (Reservoir A $\\rightarrow$ Titik T)
-        3. **Debit Pipa 2 ($Q_2$):** ${Q2_fin:.4f}\\text{{ m}}^3/s$ (Mengalir {arah_Q2})
-        4. **Debit Pipa 3 ($Q_3$):** ${Q3_fin:.4f}\\text{{ m}}^3/s$ (Titik T $\\rightarrow$ Reservoir D)
-        """)
+            # Cek Trial X (Format Persis PDF)
+            st.markdown(f"**Cek Trial {idx}**")
+            if flow_case_trial == 1:
+                if ht_val == Z_B_rel:
+                    st.write("Asumsi tinggi tekan di titik T ($h_T$) sejajar dengan elevasi kolam B.")
+                else:
+                    st.write("Asumsi tinggi tekan di titik T ($h_T$) lebih tinggi dari kolam B namun masih di bawah kolam A.")
+                hf1 = Z_A_rel - ht_val
+                hf2 = ht_val - Z_B_rel
+                hf3 = ht_val - Z_D_rel
+            else:
+                st.write("Asumsi tinggi tekan di titik T ($h_T$) lebih rendah dari kolam B namun di atas kolam D.")
+                hf1 = Z_A
