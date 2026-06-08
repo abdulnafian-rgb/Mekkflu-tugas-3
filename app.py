@@ -4,7 +4,7 @@ import math
 # Set judul halaman web
 st.set_page_config(page_title="Kalkulator Pipa Bercabang", layout="centered")
 
-st.title("🚰 Analisis Pipa Bercabang (3 Reservoir)")
+st.title("🚰 Tugas 3 Mekanika Fluida Setelah UTS")
 # Watermark 1: Teks di bawah judul
 st.caption("Thanks To: **Anwar N**")
 
